@@ -1,41 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Convert Image to WebP</title>
     <style>
-        .tabs div {
-            display: inline-block;
-            padding: 10px;
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .tab {
+            padding: 10px 20px;
             margin-right: 5px;
             cursor: pointer;
+            border: none;
+            border-radius: 5px;
             background-color: #eee;
         }
+
         .active {
             background-color: #ccc;
         }
+
+        .imageContainer {
+            display: flex;
+            justify-content: center;
+        }
+
         .imageWrapper img {
             width: 256px;
         }
+
+        .saveButton {
+            display: flex;
+            justify-content: center;
+        }
     </style>
 </head>
+
 <body>
     <div>
-        <span>Convert image to Webp format</span>
-        <div>
-            <input
-                type="file"
-                accept="image/*"
-                name="convert"
-                id="userImage"
-                onchange="convertImage(event)"
-            />
+        <div class="saveButton">
+            <span>Convert image to Webp format</span>
+            <div>
+                <input type="file" accept="image/*" name="convert" id="userImage" onchange="convertImage(event)" />
+            </div>
         </div>
-        <div id="tabs"></div>
-        <div id="imageContainer"></div>
-        <button id="saveImagesSequentiallyButton">Save Images Sequentially</button>
-        <button id="saveImageButton">Save Image</button>
+        <div id="tabs" class="tabs"></div>
+        <div id="imageContainer" class="imageContainer"></div>
+        <div class="saveButton">
+            <button id="saveImagesSequentiallyButton">Save Images Sequentially</button>
+            <button id="saveImageButton">Save Image</button>
+        </div>
     </div>
 
     <script>
@@ -73,10 +92,10 @@
             const tabsDiv = document.getElementById('tabs');
             tabsDiv.innerHTML = '';
             resolutions.forEach((res, index) => {
-                const tab = document.createElement('div');
+                const tab = document.createElement('button');
                 tab.textContent = res + 'p';
                 tab.onclick = () => setActiveTab(index);
-                tab.className = activeTab === index ? 'active' : '';
+                tab.className = 'tab' + (activeTab === index ? ' active' : '');
                 tabsDiv.appendChild(tab);
             });
         }
@@ -94,7 +113,10 @@
                 const img = document.createElement('img');
                 img.src = webpImages[activeTab];
                 img.alt = 'Image ' + activeTab;
-                imageContainer.appendChild(img);
+                const imageWrapper = document.createElement('div');
+                imageWrapper.className = 'imageWrapper';
+                imageWrapper.appendChild(img);
+                imageContainer.appendChild(imageWrapper);
             }
         }
 
@@ -120,4 +142,5 @@
         };
     </script>
 </body>
+
 </html>
