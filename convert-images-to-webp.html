@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert Image to WebP</title>
+    <style>
+        .tabs div {
+            display: inline-block;
+            padding: 10px;
+            margin-right: 5px;
+            cursor: pointer;
+            background-color: #eee;
+        }
+        .active {
+            background-color: #ccc;
+        }
+        .imageWrapper img {
+            width: 256px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <span>Convert image to Webp format</span>
+        <div>
+            <input
+                type="file"
+                accept="image/*"
+                name="convert"
+                id="userImage"
+                onchange="convertImage(event)"
+            />
+        </div>
+        <div id="tabs"></div>
+        <div id="imageContainer"></div>
+        <button id="saveImagesSequentiallyButton">Save Images Sequentially</button>
+        <button id="saveImageButton">Save Image</button>
+    </div>
+
+    <script>
+        let webpImages = [];
+        let resolutions = [];
+        let activeTab = 0;
+
+        function convertImage(event) {
+            if (event.target.files.length > 0) {
+                const src = URL.createObjectURL(event.target.files[0]);
+
+                const image = new Image();
+                image.src = src;
+                image.onload = async () => {
+                    const availableResolutions = [256, 384, 512, 640, 750, 828, 1080, 1200, 1920, 2048, 3840];
+                    const filteredResolutions = availableResolutions.filter(resolution => image.width >= resolution);
+                    webpImages = await Promise.all(filteredResolutions.map(async (resolution) => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const ratio = image.width / image.height;
+                        const height = Math.round(resolution / ratio);
+                        canvas.width = resolution;
+                        canvas.height = height;
+                        ctx.drawImage(image, 0, 0, resolution, height);
+                        return canvas.toDataURL('image/webp', 0.5);
+                    }));
+                    resolutions = filteredResolutions;
+                    displayTabs();
+                    displayImage();
+                };
+            }
+        }
+
+        function displayTabs() {
+            const tabsDiv = document.getElementById('tabs');
+            tabsDiv.innerHTML = '';
+            resolutions.forEach((res, index) => {
+                const tab = document.createElement('div');
+                tab.textContent = res + 'p';
+                tab.onclick = () => setActiveTab(index);
+                tab.className = activeTab === index ? 'active' : '';
+                tabsDiv.appendChild(tab);
+            });
+        }
+
+        function setActiveTab(index) {
+            activeTab = index;
+            displayTabs();
+            displayImage();
+        }
+
+        function displayImage() {
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.innerHTML = '';
+            if (webpImages.length > 0) {
+                const img = document.createElement('img');
+                img.src = webpImages[activeTab];
+                img.alt = 'Image ' + activeTab;
+                imageContainer.appendChild(img);
+            }
+        }
+
+        document.getElementById('saveImagesSequentiallyButton').onclick = async () => {
+            for (let i = 0; i < webpImages.length; i++) {
+                const link = document.createElement('a');
+                link.href = webpImages[i];
+                link.download = `image-${resolutions[i]}p.webp`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        };
+
+        document.getElementById('saveImageButton').onclick = () => {
+            const link = document.createElement('a');
+            link.href = webpImages[activeTab];
+            link.download = `image-${resolutions[activeTab]}p.webp`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+    </script>
+</body>
+</html>
